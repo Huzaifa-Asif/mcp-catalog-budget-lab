@@ -1,0 +1,15 @@
+name: Bug report
+description: Report a reproducible defect without private catalog data.
+body:
+  - type: textarea
+    id: reproduce
+    attributes: { label: Reproduction, description: Use minimal synthetic JSON. }
+    validations: { required: true }
+  - type: textarea
+    id: expected
+    attributes: { label: Expected behavior }
+    validations: { required: true }
+  - type: textarea
+    id: environment
+    attributes: { label: Environment, description: Browser or Node version. }
+    validations: { required: true }

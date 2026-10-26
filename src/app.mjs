@@ -1,0 +1,4 @@
+import { parseAndAnalyze } from './core.mjs';
+const input = document.querySelector('#catalog'); const out = document.querySelector('#output'); const status=document.querySelector('#status');
+document.querySelector('#analyze').addEventListener('click', () => { try { const r = parseAndAnalyze(input.value); out.textContent = JSON.stringify(r, null, 2); status.textContent=`Analysis complete: ${r.summary.tools} tools and ${r.summary.findings} displayed findings.`; } catch (e) { out.textContent = `Error: ${e.message}`; status.textContent='Analysis failed. Review the error in the report.'; } });
+document.querySelector('#example').addEventListener('click', () => { input.value = JSON.stringify({tools:[{name:'weather_current',description:'Get current weather for one city.',inputSchema:{type:'object',properties:{city:{type:'string',description:'City and country.'}},required:['city']}}]},null,2); status.textContent='Safe example loaded.'; });

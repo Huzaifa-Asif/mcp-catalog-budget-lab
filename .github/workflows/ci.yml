@@ -1,0 +1,30 @@
+name: CI
+on: [push, pull_request]
+permissions: { contents: read }
+jobs:
+  check:
+    strategy: { matrix: { node: [20, 22, 24] } }
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with: { node-version: '${{ matrix.node }}', cache: npm }
+      - run: npm ci
+      - run: npm run check
+  pages:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: check
+    permissions: { contents: read, pages: write, id-token: write }
+    environment: { name: github-pages, url: '${{ steps.deploy.outputs.page_url }}' }
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: npm run build
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with: { path: dist }
+      - id: deploy
+        uses: actions/deploy-pages@v4
