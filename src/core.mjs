@@ -3,6 +3,10 @@ export const LIMITS = Object.freeze({ maxBytes: 2_097_152, maxTools: 2_000, maxF
 const bytes = value => enc.encode(JSON.stringify(value)).length;
 const text = value => typeof value === 'string' ? value : '';
 const norm = value => text(value).toLowerCase().replace(/\s+/g, ' ').trim();
+function preflightValue(root) {
+  const stack=[{value:root,depth:0,exit:false}]; const active=new Set(); let nodes=0;
+  while(stack.length){ const item=stack.pop(); const {value,depth}=item; if(!value||typeof value!=='object') continue; if(item.exit){active.delete(value);continue;} if(depth>512) throw new Error('JSON nesting exceeds 512 levels.'); if(active.has(value)) throw new Error('Input must not contain circular values.'); active.add(value); stack.push({value,depth,exit:true}); if(++nodes>200_000) throw new Error('Input object graph exceeds 200000 containers.'); const children=Array.isArray(value)?value:Object.values(value); for(let i=children.length-1;i>=0;i--) stack.push({value:children[i],depth:depth+1,exit:false}); }
+}
 
 export function extractTools(value) {
   const tools = Array.isArray(value) ? value : value?.tools ?? value?.result?.tools;
@@ -26,6 +30,7 @@ function visitSchema(schema, stats) {
 }
 
 export function analyzeCatalog(input) {
+  preflightValue(input);
   const inputBytes = bytes(input);
   if (inputBytes > LIMITS.maxBytes) throw new Error(`Input exceeds ${LIMITS.maxBytes} UTF-8 serialized bytes.`);
   const tools = extractTools(input);
